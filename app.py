@@ -159,7 +159,40 @@ except Exception as erro:
     st.error(f"Erro ao carregar movimentacoes: {erro}")
     st.stop()
 
+# FILTRO POR MES E ANO
+st.subheader("📅 Filtrar por período")
 
+meses = {
+    1: "Janeiro", 2: "Fevereiro", 3: "Março",
+    4: "Abril", 5: "Maio", 6: "Junho",
+    7: "Julho", 8: "Agosto", 9: "Setembro",
+    10: "Outubro", 11: "Novembro", 12: "Dezembro"
+}
+
+col_mes, col_ano = st.columns(2)
+
+with col_mes:
+    mes_selecionado = st.selectbox(
+        "Mês",
+        list(meses.keys()),
+        index=date.today().month - 1,
+        format_func=lambda mes: meses[mes]
+    )
+
+with col_ano:
+    ano_selecionado = st.number_input(
+        "Ano",
+        min_value=2000,
+        max_value=2100,
+        value=date.today().year,
+        step=1
+    )
+
+movimentacoes = [
+    item for item in movimentacoes
+    if date.fromisoformat(item["data"]).month == mes_selecionado
+    and date.fromisoformat(item["data"]).year == ano_selecionado
+]
 # CALCULAR VALORES
 total_receitas = sum(
     float(item["valor"])
@@ -200,13 +233,16 @@ st.subheader("📊 Receitas x Despesas")
 
 dados_grafico = pd.DataFrame({
     "Categoria": ["Receitas", "Despesas"],
-    "Valor (R$)": [total_receitas, total_despesas]
+    "Receitas": [total_receitas, 0],
+    "Despesas": [0, total_despesas]
 })
 
 st.bar_chart(
     dados_grafico,
     x="Categoria",
-    y="Valor (R$)",
+    y=["Receitas", "Despesas"],
+    color=["#16A34A", "#DC2626"],
+    stack=False,
     use_container_width=True
 )
 
