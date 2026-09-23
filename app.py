@@ -210,7 +210,7 @@ st.bar_chart(
     use_container_width=True
 )
 
-st.divider()st.divider()
+st.divider()
 
 
 # ADICIONAR MOVIMENTACAO
