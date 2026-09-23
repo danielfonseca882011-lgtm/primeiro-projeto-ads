@@ -1,0 +1,19 @@
+    1  gitclone
+    2  gitclonehttps://github.com/danielfonseca882011-lgtm/primeiro-projeto-ads.git
+    3  gitstatus
+    4  gitclone
+    5  gitclone  https://github.com/danielfonseca882011-lgtm/primeiro-projeto-ads.git
+    6  gitstatus                                                                                           git add .                                                                                           git status                                                                                          git commit -m primeiro-projeto-ads                                                                  git push                                                                                            git config  __global user.name   danielfonseca882011-lgtm                                           git config --global user.email danielfonseca882011@gmail.com
+    7  git clone https://github.com/danielfonseca882011-lgtm/primeiro-projeto-ads.git
+    8  git status
+    9  cd primeiro-projeto-ads
+   10  git status
+   11  git status
+   12  git add .
+   13  git status
+   14  git commit -m "primeiro-projeto-ads"
+   15  git config --global user.name "Daniel Fonseca"
+   16  git config --global user.email "danielfonseca882011@gmail.com"
+   17  git commit -m "primeiro-projeto-ads"
+   18  git push
+   19  history > comandos-git.txt
