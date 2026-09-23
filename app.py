@@ -194,7 +194,23 @@ col3.metric(
     f"R$ {saldo:,.2f}"
 )
 
-st.divider()
+
+# GRAFICO DE RECEITAS E DESPESAS
+st.subheader("📊 Receitas x Despesas")
+
+dados_grafico = pd.DataFrame({
+    "Categoria": ["Receitas", "Despesas"],
+    "Valor (R$)": [total_receitas, total_despesas]
+})
+
+st.bar_chart(
+    dados_grafico,
+    x="Categoria",
+    y="Valor (R$)",
+    use_container_width=True
+)
+
+st.divider()st.divider()
 
 
 # ADICIONAR MOVIMENTACAO
