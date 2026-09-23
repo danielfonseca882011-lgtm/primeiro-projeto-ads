@@ -3,6 +3,8 @@ import streamlit as st
 from supabase import create_client
 from datetime import date
 import pandas as pd
+from io import BytesIO
+from openpyxl.styles import Font, PatternFill
 
 # CONFIGURACAO
 st.set_page_config(
@@ -295,7 +297,80 @@ with st.form("nova_movimentacao", clear_on_submit=True):
             except Exception as erro:
                 st.error(f"Erro ao salvar: {erro}")
 
+# RELATORIO MENSAL EM EXCEL
+st.divider()
+st.subheader("📥 Relatório mensal em Excel")
 
+def gerar_relatorio_excel():
+    arquivo = BytesIO()
+
+    linhas = [
+        {
+            "Data": item["data"],
+            "Tipo": item["tipo"],
+            "Descrição": item["descricao"],
+            "Valor (R$)": float(item["valor"])
+        }
+        for item in movimentacoes
+    ]
+
+    df_relatorio = pd.DataFrame(
+        linhas,
+        columns=["Data", "Tipo", "Descrição", "Valor (R$)"]
+    )
+
+    with pd.ExcelWriter(arquivo, engine="openpyxl") as writer:
+        df_relatorio.to_excel(
+            writer,
+            sheet_name="Movimentações",
+            index=False
+        )
+
+        resumo = pd.DataFrame({
+            "Indicador": ["Receitas", "Despesas", "Saldo"],
+            "Valor (R$)": [
+                total_receitas,
+                total_despesas,
+                saldo
+            ]
+        })
+
+        resumo.to_excel(
+            writer,
+            sheet_name="Resumo",
+            index=False
+        )
+
+        for planilha in writer.book.worksheets:
+            planilha.freeze_panes = "A2"
+
+            for celula in planilha[1]:
+                celula.font = Font(color="FFFFFF", bold=True)
+                celula.fill = PatternFill(
+                    fill_type="solid",
+                    fgColor="1F4E78"
+                )
+
+            for coluna in planilha.columns:
+                letra = coluna[0].column_letter
+                maior = max(
+                    len(str(celula.value or ""))
+                    for celula in coluna
+                )
+                planilha.column_dimensions[letra].width = min(
+                    maior + 3, 35
+                )
+
+    arquivo.seek(0)
+    return arquivo.getvalue()
+
+
+st.download_button(
+    label="📥 Baixar relatório em Excel",
+    data=gerar_relatorio_excel(),
+    file_name=f"relatorio_{ano_selecionado}_{mes_selecionado:02d}.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
 # HISTORICO
 st.divider()
 
