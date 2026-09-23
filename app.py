@@ -1,5 +1,9 @@
 
-import streamlit as st
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
+from xml.sax.saxutils import escapeimport streamlit as st
 from supabase import create_client
 from datetime import date
 import pandas as pd
@@ -370,6 +374,132 @@ st.download_button(
     data=gerar_relatorio_excel(),
     file_name=f"relatorio_{ano_selecionado}_{mes_selecionado:02d}.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+# RELATORIO MENSAL EM PDF
+st.subheader("📄 Relatório mensal em PDF")
+
+
+def formatar_reais(valor):
+    return (
+        f"R$ {valor:,.2f}"
+        .replace(",", "X")
+        .replace(".", ",")
+        .replace("X", ".")
+    )
+
+
+def gerar_relatorio_pdf():
+    arquivo = BytesIO()
+
+    documento = SimpleDocTemplate(
+        arquivo,
+        pagesize=A4,
+        rightMargin=35,
+        leftMargin=35,
+        topMargin=35,
+        bottomMargin=35
+    )
+
+    estilos = getSampleStyleSheet()
+    elementos = []
+
+    elementos.append(
+        Paragraph("RELATÓRIO FINANCEIRO MENSAL", estilos["Title"])
+    )
+
+    elementos.append(Spacer(1, 15))
+
+    elementos.append(
+        Paragraph(
+            f"<b>Usuário:</b> {escape(str(nome_usuario))}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            f"<b>Período:</b> {meses[mes_selecionado]} de {ano_selecionado}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(Spacer(1, 20))
+
+    resumo_pdf = [
+        ["Indicador", "Valor"],
+        ["Receitas", formatar_reais(total_receitas)],
+        ["Despesas", formatar_reais(total_despesas)],
+        ["Saldo", formatar_reais(saldo)]
+    ]
+
+    tabela_resumo = Table(resumo_pdf, colWidths=[250, 250])
+
+    tabela_resumo.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F4E78")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8)
+    ]))
+
+    elementos.append(tabela_resumo)
+    elementos.append(Spacer(1, 25))
+
+    elementos.append(
+        Paragraph("Histórico de movimentações", estilos["Heading2"])
+    )
+
+    historico_pdf = [["Data", "Tipo", "Descrição", "Valor"]]
+
+    for item in movimentacoes:
+        historico_pdf.append([
+            str(item["data"]),
+            str(item["tipo"]),
+            Paragraph(
+                escape(str(item["descricao"])),
+                estilos["Normal"]
+            ),
+            formatar_reais(float(item["valor"]))
+        ])
+
+    if not movimentacoes:
+        historico_pdf.append([
+            "-",
+            "-",
+            "Nenhuma movimentação neste período",
+            "-"
+        ])
+
+    tabela_historico = Table(
+        historico_pdf,
+        colWidths=[75, 75, 235, 115],
+        repeatRows=1
+    )
+
+    tabela_historico.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F4E78")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 7)
+    ]))
+
+    elementos.append(tabela_historico)
+
+    documento.build(elementos)
+
+    arquivo.seek(0)
+    return arquivo.getvalue()
+
+
+st.download_button(
+    label="📄 Baixar relatório em PDF",
+    data=gerar_relatorio_pdf(),
+    file_name=f"relatorio_{ano_selecionado}_{mes_selecionado:02d}.pdf",
+    mime="application/pdf"
 )
 # HISTORICO
 st.divider()
