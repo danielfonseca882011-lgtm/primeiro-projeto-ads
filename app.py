@@ -263,6 +263,73 @@ if movimentacoes:
 
     st.divider()
 
+  
+    st.subheader("✏️ Editar movimentacao")
+
+    opcoes_edicao = {
+        f'{item["id"]} - {item["descricao"]} - R$ {item["valor"]}': item
+        for item in movimentacoes
+    }
+
+    selecionado_edicao = st.selectbox(
+        "Escolha a movimentacao para editar",
+        list(opcoes_edicao.keys())
+    )
+
+    item_edicao = opcoes_edicao[selecionado_edicao]
+
+    with st.form("editar_movimentacao"):
+        tipo_editado = st.selectbox(
+            "Tipo",
+            ["Receita", "Despesa"],
+            index=["Receita", "Despesa"].index(item_edicao["tipo"])
+        )
+
+        descricao_editada = st.text_input(
+            "Descricao",
+            value=item_edicao["descricao"]
+        )
+
+        valor_editado = st.number_input(
+            "Valor (R$)",
+            min_value=0.01,
+            value=float(item_edicao["valor"]),
+            step=1.0
+        )
+
+        data_editada = st.date_input(
+            "Data da movimentacao",
+            value=date.fromisoformat(item_edicao["data"])
+        )
+
+        salvar_edicao = st.form_submit_button("Salvar alteracoes")
+
+        if salvar_edicao:
+            if not descricao_editada.strip():
+                st.warning("Digite uma descricao.")
+            else:
+                try:
+                    (
+                        supabase.table("movimentacoes")
+                        .update({
+                            "tipo": tipo_editado,
+                            "descricao": descricao_editada.strip(),
+                            "valor": valor_editado,
+                            "data": str(data_editada)
+                        })
+                        .eq("id", item_edicao["id"])
+                        .eq("user_id", user_id)
+                        .execute()
+                    )
+
+                    st.success("Movimentacao atualizada!")
+                    st.rerun()
+
+                except Exception as erro:
+                    st.error(f"Erro ao editar: {erro}")
+
+    st.divider()
+  
     st.subheader("🗑️ Excluir movimentacao")
 
     opcoes = {
