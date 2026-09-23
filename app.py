@@ -3,7 +3,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
-from xml.sax.saxutils import escapeimport streamlit as st
+from xml.sax.saxutils import escape
+import streamlit as st
 from supabase import create_client
 from datetime import date
 import pandas as pd
